@@ -5,6 +5,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { LanguageProvider } from "@/contexts/LanguageContext";
 import { VirtuosityPrivyProvider } from "@/providers/PrivyProvider";
+import { SupabaseProvider } from "@/providers/SupabaseProvider";
 import Index from "./pages/Index";
 import Dashboard from "./pages/Dashboard";
 import DashboardAziende from "./pages/DashboardAziende";
@@ -18,14 +19,16 @@ import WelfareManagement from "./pages/WelfareManagement";
 import RewardsManagement from "./pages/RewardsManagement";
 import WelfareUpload from "./pages/WelfareUpload";
 import AuthTest from "./pages/AuthTest";
+import SupabaseTest from "./components/SupabaseTest";
 
 const App = () => (
   <VirtuosityPrivyProvider>
-    <LanguageProvider>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
+    <SupabaseProvider>
+      <LanguageProvider>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/dashboard" element={<Dashboard />} />
@@ -36,6 +39,7 @@ const App = () => (
             <Route path="/about" element={<About />} />
             <Route path="/report" element={<Report />} />
             <Route path="/auth-test" element={<AuthTest />} />
+            <Route path="/supabase-test" element={<SupabaseTest />} />
             <Route path="/digital-warranty-upload" element={<DigitalWarrantyUpload />} />
             <Route path="/welfare-management" element={<WelfareManagement />} />
             <Route path="/rewards-management" element={<RewardsManagement />} />
@@ -43,9 +47,10 @@ const App = () => (
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
-        </BrowserRouter>
-      </TooltipProvider>
-    </LanguageProvider>
+          </BrowserRouter>
+        </TooltipProvider>
+      </LanguageProvider>
+    </SupabaseProvider>
   </VirtuosityPrivyProvider>
 );
 

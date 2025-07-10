@@ -38,7 +38,7 @@ export const VirtuosityPrivyProvider = ({ children }: VirtuosityPrivyProviderPro
   return (
     <PrivyProvider
       appId="cmckjxj1c00fgkw0n6qrf826e"
-      config={privyConfig} // Pass the whole config object here
+      config={privyConfig}
     >
       {children}
     </PrivyProvider>

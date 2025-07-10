@@ -59,6 +59,30 @@ This project is built with:
 - React
 - shadcn-ui
 - Tailwind CSS
+- Supabase (Database & Auth)
+- Privy (Web3 Wallet)
+- Polygon (Blockchain Integration)
+
+## 🚀 Virtuosity Demo Setup
+
+This is a functional demo of a **sustainability platform** that combines blockchain technology with real-world environmental actions.
+
+### 🔧 Quick Setup:
+1. Install dependencies: `npm install`
+2. Setup Supabase project and add credentials to `.env`
+3. Run database schema: Execute `supabase-schema.sql` in Supabase SQL Editor
+4. Start development: `npm run dev`
+5. Test integration: Visit `/supabase-test`
+
+For detailed setup instructions, see `SETUP-FASE-1.md`.
+
+### ✨ Current Features:
+- **🔐 Web3 Authentication** with Privy embedded wallets
+- **📊 Activity Tracking** with CO₂ calculation
+- **🪙 Token System** (pending → blockchain conversion)
+- **🏆 Rewards Marketplace** with real prizes
+- **📱 Mobile-ready** responsive design
+- **🌍 Multi-language** support
 
 ## How can I deploy this project?
 
