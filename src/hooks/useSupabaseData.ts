@@ -108,3 +108,32 @@ export const activityTypes = {
     color: 'gray'
   }
 };
+
+// Activity source mappings
+export const activitySources = {
+  manual: {
+    label: 'Manuale',
+    icon: '✋',
+    color: 'blue'
+  },
+  google_fit: {
+    label: 'Google Fit',
+    icon: '💚',
+    color: 'green'
+  },
+  apple_health: {
+    label: 'Apple Health',
+    icon: '🍎',
+    color: 'red'
+  }
+};
+
+// Helper functions
+export const isAutomaticActivity = (activity: Activity): boolean => {
+  return activity.source === 'google_fit' || activity.source === 'apple_health';
+};
+
+export const getActivitySourceInfo = (source?: string) => {
+  if (!source || source === 'manual') return activitySources.manual;
+  return activitySources[source as keyof typeof activitySources] || activitySources.manual;
+};

@@ -21,6 +21,10 @@ export interface Database {
           tokens_pending: number
           tokens_minted: number
           last_mint_tx?: string
+          google_fit_connected: boolean
+          google_fit_access_token?: string
+          last_google_fit_sync?: string
+          google_account_email?: string
           total_co2_saved: number
           total_activities: number
           created_at: string
@@ -37,6 +41,10 @@ export interface Database {
           tokens_pending?: number
           tokens_minted?: number
           last_mint_tx?: string
+          google_fit_connected?: boolean
+          google_fit_access_token?: string
+          last_google_fit_sync?: string
+          google_account_email?: string
           total_co2_saved?: number
           total_activities?: number
           created_at?: string
@@ -53,6 +61,10 @@ export interface Database {
           tokens_pending?: number
           tokens_minted?: number
           last_mint_tx?: string
+          google_fit_connected?: boolean
+          google_fit_access_token?: string
+          last_google_fit_sync?: string
+          google_account_email?: string
           total_co2_saved?: number
           total_activities?: number
           created_at?: string
@@ -64,6 +76,7 @@ export interface Database {
           id: string
           user_id: string
           type: 'walking' | 'cycling' | 'public_transport' | 'waste_recycling' | 'other'
+          source: 'manual' | 'google_fit' | 'apple_health'
           description: string
           co2_saved: number
           tokens_earned: number
@@ -72,6 +85,8 @@ export interface Database {
           verified: boolean
           verification_data?: any
           certificate_url?: string
+          google_fit_session_id?: string
+          sync_timestamp?: string
           created_at: string
           updated_at: string
         }
@@ -79,6 +94,7 @@ export interface Database {
           id?: string
           user_id: string
           type: 'walking' | 'cycling' | 'public_transport' | 'waste_recycling' | 'other'
+          source?: 'manual' | 'google_fit' | 'apple_health'
           description: string
           co2_saved: number
           tokens_earned: number
@@ -87,6 +103,8 @@ export interface Database {
           verified?: boolean
           verification_data?: any
           certificate_url?: string
+          google_fit_session_id?: string
+          sync_timestamp?: string
           created_at?: string
           updated_at?: string
         }
@@ -94,6 +112,7 @@ export interface Database {
           id?: string
           user_id?: string
           type?: 'walking' | 'cycling' | 'public_transport' | 'waste_recycling' | 'other'
+          source?: 'manual' | 'google_fit' | 'apple_health'
           description?: string
           co2_saved?: number
           tokens_earned?: number
@@ -102,6 +121,8 @@ export interface Database {
           verified?: boolean
           verification_data?: any
           certificate_url?: string
+          google_fit_session_id?: string
+          sync_timestamp?: string
           created_at?: string
           updated_at?: string
         }
@@ -256,6 +277,44 @@ export interface Database {
           notes?: string
           created_at?: string
           updated_at?: string
+        }
+      }
+      sync_logs: {
+        Row: {
+          id: string
+          user_id: string
+          sync_type: 'google_fit' | 'apple_health' | 'manual_import'
+          status: 'started' | 'success' | 'error' | 'partial'
+          activities_synced: number
+          data_range_start?: string
+          data_range_end?: string
+          error_message?: string
+          sync_details?: any
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          sync_type: 'google_fit' | 'apple_health' | 'manual_import'
+          status: 'started' | 'success' | 'error' | 'partial'
+          activities_synced?: number
+          data_range_start?: string
+          data_range_end?: string
+          error_message?: string
+          sync_details?: any
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          sync_type?: 'google_fit' | 'apple_health' | 'manual_import'
+          status?: 'started' | 'success' | 'error' | 'partial'
+          activities_synced?: number
+          data_range_start?: string
+          data_range_end?: string
+          error_message?: string
+          sync_details?: any
+          created_at?: string
         }
       }
     }

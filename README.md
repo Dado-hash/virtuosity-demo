@@ -61,6 +61,7 @@ This project is built with:
 - Tailwind CSS
 - Supabase (Database & Auth)
 - Privy (Web3 Wallet)
+- Google Fit API (Fitness Tracking)
 - Polygon (Blockchain Integration)
 
 ## 🚀 Virtuosity Demo Setup
@@ -70,19 +71,33 @@ This is a functional demo of a **sustainability platform** that combines blockch
 ### 🔧 Quick Setup:
 1. Install dependencies: `npm install`
 2. Setup Supabase project and add credentials to `.env`
-3. Run database schema: Execute `supabase-schema.sql` in Supabase SQL Editor
-4. Start development: `npm run dev`
-5. Test integration: Visit `/supabase-test`
+3. Setup Google Fit API and add credentials to `.env`
+4. Run database schema: Execute `supabase-schema.sql` + `google-fit-schema-update.sql`
+5. Start development: `npm run dev`
+6. Test integration: Visit `/supabase-test` (complete) or `/googlefit-test` (Google Fit only)
 
-For detailed setup instructions, see `SETUP-FASE-1.md`.
+For detailed setup instructions, see `SETUP-FASE-1.md` and `SETUP-FASE-2.md`.
 
 ### ✨ Current Features:
 - **🔐 Web3 Authentication** with Privy embedded wallets
 - **📊 Activity Tracking** with CO₂ calculation
+- **🏃‍♂️ Google Fit Integration** for automatic fitness tracking
 - **🪙 Token System** (pending → blockchain conversion)
 - **🏆 Rewards Marketplace** with real prizes
 - **📱 Mobile-ready** responsive design
 - **🌍 Multi-language** support
+- **♾️ Hybrid System** (automatic + manual activities)
+
+## ⚠️ Importante: Migrazione Google OAuth2
+
+**Il sistema di autenticazione Google è stato migrato** dalle librerie deprecate (`gapi.auth2`) al nuovo sistema Google Identity Services.
+
+- ✅ **Migrazione completata**: Nessun warning "deprecated libraries"
+- ✅ **Compatibilità**: Funziona con le nuove politiche Google
+- ✅ **Sicurezza**: Utilizza OAuth2 aggiornato
+- ✅ **Correzioni**: Risolti problemi di distanza e token ([`GOOGLE-FIT-COMPLETE.md`](./GOOGLE-FIT-COMPLETE.md))
+
+Per dettagli tecnici e troubleshooting, vedi [`GOOGLE-OAUTH2-MIGRATION.md`](./GOOGLE-OAUTH2-MIGRATION.md).
 
 ## How can I deploy this project?
 

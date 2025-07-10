@@ -15,6 +15,10 @@ interface SupabaseContextType {
   getUserActivities: () => Promise<Database['public']['Tables']['activities']['Row'][]>;
   getRewards: () => Promise<Database['public']['Tables']['rewards']['Row'][]>;
   redeemReward: (rewardId: string, tokenCost: number) => Promise<void>;
+  // New functions for Google Fit and certification
+  checkGoogleFitActivityExists: (sessionId: string) => Promise<boolean>;
+  certifyActivity: (activityId: string) => Promise<void>;
+  updateActivityStatus: (activityId: string, verified: boolean) => Promise<void>;
 }
 
 const SupabaseContext = createContext<SupabaseContextType | undefined>(undefined);
@@ -273,6 +277,126 @@ export const SupabaseProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     }
   };
 
+  // 🔍 Check if Google Fit activity already exists
+  const checkGoogleFitActivityExists = async (sessionId: string): Promise<boolean> => {
+    if (!user || !sessionId) return false;
+
+    try {
+      const { data, error } = await supabase
+        .from('activities')
+        .select('id')
+        .eq('user_id', user.id)
+        .eq('google_fit_session_id', sessionId)
+        .limit(1);
+
+      if (error) {
+        console.error('Error checking Google Fit activity:', error);
+        return false;
+      }
+
+      const exists = (data && data.length > 0);
+      console.log(`🔍 Google Fit session ${sessionId} exists: ${exists}`);
+      return exists;
+    } catch (error) {
+      console.error('Error checking Google Fit activity:', error);
+      return false;
+    }
+  };
+
+  // 🏆 Certify individual activity using database function (bypasses RLS issues)
+  const certifyActivity = async (activityId: string): Promise<void> => {
+    if (!user) {
+      throw new Error('User not authenticated');
+    }
+
+    try {
+      console.log(`🏆 Starting certification for activity ${activityId}`);
+      console.log('🔍 Current user:', user.id);
+      
+      // Use database function to certify activity (bypasses RLS)
+      console.log('🚀 Calling certify_user_activity database function...');
+      const { data, error } = await supabase
+        .rpc('certify_user_activity', {
+          activity_id_param: activityId,
+          user_id_param: user.id
+        });
+
+      if (error) {
+        console.error('❌ Database function error:', error);
+        throw error;
+      }
+      
+      console.log('✅ Database function result:', data);
+      
+      if (!data.success) {
+        console.error('❌ Certification failed:', data.error);
+        throw new Error(data.error || 'Certification failed');
+      }
+      
+      console.log(`🎉 Activity ${activityId} certified successfully!`);
+      console.log(`💰 Tokens converted: ${data.tokens_converted}`);
+      
+      // Update local user state to reflect the changes
+      const newPendingTokens = Math.max(0, user.tokens_pending - data.tokens_converted);
+      const newMintedTokens = user.tokens_minted + data.tokens_converted;
+      
+      setUser(prev => prev ? {
+        ...prev,
+        tokens_pending: newPendingTokens,
+        tokens_minted: newMintedTokens
+      } : null);
+      
+      console.log('✅ Local user state updated');
+      
+    } catch (error) {
+      console.error('💥 Error in certifyActivity:', error);
+      console.error('Error details:', {
+        message: error.message,
+        stack: error.stack,
+        name: error.name
+      });
+      throw error; // Re-throw to be caught by the UI
+    }
+  };
+
+  // 📝 Update activity verification status
+  const updateActivityStatus = async (activityId: string, verified: boolean): Promise<void> => {
+    if (!user) {
+      throw new Error('User not authenticated for updateActivityStatus');
+    }
+
+    try {
+      console.log(`📝 Attempting to update activity ${activityId} to verified: ${verified}`);
+      
+      const { data, error } = await supabase
+        .from('activities')
+        .update({ 
+          verified,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', activityId)
+        .eq('user_id', user.id)
+        .select(); // Add select to get the updated record
+
+      if (error) {
+        console.error('❌ Supabase error in updateActivityStatus:', error);
+        throw error;
+      }
+      
+      console.log('✅ Activity update result:', data);
+      
+      if (!data || data.length === 0) {
+        console.error('❌ No activity was updated - possibly wrong ID or user_id');
+        throw new Error('No activity was updated - check activity ID and permissions');
+      }
+      
+      console.log(`✅ Activity ${activityId} verification status updated to: ${verified}`);
+    } catch (error) {
+      console.error('💥 Error in updateActivityStatus:', error);
+      throw error;
+    }
+  };
+
   useEffect(() => {
     if (ready) {
       if (privyUser) {
@@ -294,7 +418,11 @@ export const SupabaseProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     getRewards,
     redeemReward,
     getBlockchainTransactions,
-    createBlockchainTransaction
+    createBlockchainTransaction,
+    // New functions
+    checkGoogleFitActivityExists,
+    certifyActivity,
+    updateActivityStatus
   };
 
   return (

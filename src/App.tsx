@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { LanguageProvider } from "@/contexts/LanguageContext";
 import { VirtuosityPrivyProvider } from "@/providers/PrivyProvider";
 import { SupabaseProvider } from "@/providers/SupabaseProvider";
+import { GoogleFitProvider } from "@/providers/GoogleFitProvider";
 import Index from "./pages/Index";
 import Dashboard from "./pages/Dashboard";
 import DashboardAziende from "./pages/DashboardAziende";
@@ -20,15 +21,19 @@ import RewardsManagement from "./pages/RewardsManagement";
 import WelfareUpload from "./pages/WelfareUpload";
 import AuthTest from "./pages/AuthTest";
 import SupabaseTest from "./components/SupabaseTest";
+import GoogleFitConnect from "./components/GoogleFitConnect";
+import GoogleSignInTest from "./components/GoogleSignInTest";
+import ActivityList from "./components/ActivityList";
 
 const App = () => (
   <VirtuosityPrivyProvider>
     <SupabaseProvider>
-      <LanguageProvider>
-        <TooltipProvider>
-          <Toaster />
-          <Sonner />
-          <BrowserRouter>
+      <GoogleFitProvider>
+        <LanguageProvider>
+          <TooltipProvider>
+            <Toaster />
+            <Sonner />
+            <BrowserRouter>
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/dashboard" element={<Dashboard />} />
@@ -40,6 +45,9 @@ const App = () => (
             <Route path="/report" element={<Report />} />
             <Route path="/auth-test" element={<AuthTest />} />
             <Route path="/supabase-test" element={<SupabaseTest />} />
+            <Route path="/activities" element={<ActivityList />} />
+            <Route path="/googlefit-test" element={<GoogleFitConnect />} />
+            <Route path="/google-signin-test" element={<GoogleSignInTest />} />
             <Route path="/digital-warranty-upload" element={<DigitalWarrantyUpload />} />
             <Route path="/welfare-management" element={<WelfareManagement />} />
             <Route path="/rewards-management" element={<RewardsManagement />} />
@@ -50,6 +58,7 @@ const App = () => (
           </BrowserRouter>
         </TooltipProvider>
       </LanguageProvider>
+      </GoogleFitProvider>
     </SupabaseProvider>
   </VirtuosityPrivyProvider>
 );

@@ -5,17 +5,21 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useSupabase } from '@/providers/SupabaseProvider';
-import { useActivities, useRewards, calculateCO2Savings, calculateTokenReward, activityTypes } from '@/hooks/useSupabaseData';
-import { Loader2, Plus, Coins, Leaf, Activity as ActivityIcon, Trophy, AlertCircle, Blocks, Clock, CheckCircle, XCircle } from 'lucide-react';
+import { useGoogleFit } from '@/providers/GoogleFitProvider';
+import { useActivities, useRewards, calculateCO2Savings, calculateTokenReward, activityTypes, getActivitySourceInfo, isAutomaticActivity } from '@/hooks/useSupabaseData';
+import { Loader2, Plus, Coins, Leaf, Activity as ActivityIcon, Trophy, AlertCircle, Blocks, Clock, CheckCircle, XCircle, Heart } from 'lucide-react';
 import { Database } from '@/lib/supabase';
 import { usePrivy } from '@privy-io/react-auth';
+import GoogleFitConnect from './GoogleFitConnect';
 
 const SupabaseTest = () => {
   const { user: privyUser, login, logout, ready } = usePrivy();
   const { user, loading, addActivity, getBlockchainTransactions, createBlockchainTransaction } = useSupabase();
   const { activities, loading: activitiesLoading, refetch: refetchActivities } = useActivities();
   const { rewards, loading: rewardsLoading } = useRewards();
+  const { isConnected: googleFitConnected } = useGoogleFit();
   
   const [testActivity, setTestActivity] = useState({
     type: 'walking' as const,
@@ -215,7 +219,19 @@ const SupabaseTest = () => {
         </CardContent>
       </Card>
 
-      {/* Add Test Activity */}
+      {/* Main Content with Tabs */}
+      <Tabs defaultValue="manual" className="space-y-6">
+        <TabsList className="grid w-full grid-cols-3">
+          <TabsTrigger value="manual">Attività Manuali</TabsTrigger>
+          <TabsTrigger value="googlefit" className="flex items-center gap-2">
+            <Heart className="h-4 w-4" />
+            Google Fit
+          </TabsTrigger>
+          <TabsTrigger value="blockchain">Blockchain</TabsTrigger>
+        </TabsList>
+
+        {/* Manual Activities Tab */}
+        <TabsContent value="manual" className="space-y-6">
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -289,6 +305,15 @@ const SupabaseTest = () => {
           </Button>
         </CardContent>
       </Card>
+        </TabsContent>
+
+        {/* Google Fit Tab */}
+        <TabsContent value="googlefit" className="space-y-6">
+          <GoogleFitConnect />
+        </TabsContent>
+
+        {/* Blockchain Tab */}
+        <TabsContent value="blockchain" className="space-y-6">
 
       {/* Token Minting Section */}
       <Card>
@@ -417,6 +442,8 @@ const SupabaseTest = () => {
           )}
         </CardContent>
       </Card>
+        </TabsContent>
+      </Tabs>
 
       {/* Activities List */}
       <Card>
@@ -456,6 +483,9 @@ const SupabaseTest = () => {
                         <span className="font-medium">{activityTypes[activity.type]?.label}</span>
                         <Badge variant={activity.verified ? "default" : "secondary"}>
                           {activity.verified ? "Verificata" : "Da verificare"}
+                        </Badge>
+                        <Badge variant="outline" className="text-xs">
+                          {getActivitySourceInfo(activity.source).icon} {getActivitySourceInfo(activity.source).label}
                         </Badge>
                       </div>
                       <p className="text-sm text-gray-600">{activity.description}</p>
