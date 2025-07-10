@@ -303,7 +303,7 @@ export const SupabaseProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     }
   };
 
-  // 🏆 Certify individual activity using database function (bypasses RLS issues)
+  // 🏆 Certify individual activity using database function
   const certifyActivity = async (activityId: string): Promise<void> => {
     if (!user) {
       throw new Error('User not authenticated');
@@ -311,10 +311,8 @@ export const SupabaseProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
     try {
       console.log(`🏆 Starting certification for activity ${activityId}`);
-      console.log('🔍 Current user:', user.id);
       
-      // Use database function to certify activity (bypasses RLS)
-      console.log('🚀 Calling certify_user_activity database function...');
+      // Use database function to certify activity
       const { data, error } = await supabase
         .rpc('certify_user_activity', {
           activity_id_param: activityId,
@@ -326,15 +324,12 @@ export const SupabaseProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         throw error;
       }
       
-      console.log('✅ Database function result:', data);
-      
       if (!data.success) {
         console.error('❌ Certification failed:', data.error);
         throw new Error(data.error || 'Certification failed');
       }
       
-      console.log(`🎉 Activity ${activityId} certified successfully!`);
-      console.log(`💰 Tokens converted: ${data.tokens_converted}`);
+      console.log(`✅ Activity certified successfully! Tokens converted: ${data.tokens_converted}`);
       
       // Update local user state to reflect the changes
       const newPendingTokens = Math.max(0, user.tokens_pending - data.tokens_converted);
@@ -346,16 +341,9 @@ export const SupabaseProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         tokens_minted: newMintedTokens
       } : null);
       
-      console.log('✅ Local user state updated');
-      
     } catch (error) {
       console.error('💥 Error in certifyActivity:', error);
-      console.error('Error details:', {
-        message: error.message,
-        stack: error.stack,
-        name: error.name
-      });
-      throw error; // Re-throw to be caught by the UI
+      throw error;
     }
   };
 
@@ -366,8 +354,6 @@ export const SupabaseProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     }
 
     try {
-      console.log(`📝 Attempting to update activity ${activityId} to verified: ${verified}`);
-      
       const { data, error } = await supabase
         .from('activities')
         .update({ 
@@ -376,17 +362,14 @@ export const SupabaseProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         })
         .eq('id', activityId)
         .eq('user_id', user.id)
-        .select(); // Add select to get the updated record
+        .select();
 
       if (error) {
-        console.error('❌ Supabase error in updateActivityStatus:', error);
+        console.error('❌ Error updating activity status:', error);
         throw error;
       }
       
-      console.log('✅ Activity update result:', data);
-      
       if (!data || data.length === 0) {
-        console.error('❌ No activity was updated - possibly wrong ID or user_id');
         throw new Error('No activity was updated - check activity ID and permissions');
       }
       

@@ -44,13 +44,9 @@ const ActivityList = () => {
     }
 
     setCertifyingId(activityId);
-    console.log(`🚀 UI: Starting certification process for activity: ${activityId}`);
     
     try {
-      console.log(`🏆 UI: Calling certifyActivity...`);
       await certifyActivity(activityId);
-      
-      console.log(`✅ UI: Certification completed, refreshing data...`);
       
       // Add a small delay to ensure database is updated
       await new Promise(resolve => setTimeout(resolve, 500));
@@ -58,15 +54,13 @@ const ActivityList = () => {
       // Refresh activities to show updated status
       await refetch();
       
-      console.log(`🔄 UI: Data refreshed`);
-      
       toast({
         title: "✅ Certificazione Completata",
         description: "L'attività è stata certificata con successo e i token sono stati convertiti!",
       });
       
     } catch (error) {
-      console.error('💥 UI: Error in handleCertifyActivity:', error);
+      console.error('Error certifying activity:', error);
       
       let errorMessage = "Si è verificato un errore durante la certificazione dell'attività";
       

@@ -29,7 +29,6 @@ const SupabaseTest = () => {
   const [addingActivity, setAddingActivity] = useState(false);
   const [blockchainTxs, setBlockchainTxs] = useState<Database['public']['Tables']['blockchain_transactions']['Row'][]>([]);
   const [loadingTxs, setLoadingTxs] = useState(false);
-  const [mintingTokens, setMintingTokens] = useState(false);
 
   const handleAddTestActivity = async () => {
     if (!testActivity.distance || !testActivity.description) return;
@@ -78,31 +77,7 @@ const SupabaseTest = () => {
     setLoadingTxs(false);
   };
 
-  const simulateTokenMinting = async () => {
-    if (!user || user.tokens_pending === 0) return;
-    
-    setMintingTokens(true);
-    try {
-      // Simulate blockchain transaction
-      await createBlockchainTransaction({
-        type: 'token_mint',
-        amount: user.tokens_pending,
-        status: 'pending',
-        contract_address: '0x...VirtuosityToken' // Placeholder
-      });
-      
-      // Simulate successful minting after 2 seconds
-      setTimeout(async () => {
-        // This would be done by the blockchain service in real implementation
-        console.log('Token minting simulated successfully');
-        loadBlockchainTransactions();
-      }, 2000);
-      
-    } catch (error) {
-      console.error('Error simulating token minting:', error);
-    }
-    setMintingTokens(false);
-  };
+
 
   // Load blockchain transactions when user changes
   useEffect(() => {
@@ -314,62 +289,6 @@ const SupabaseTest = () => {
 
         {/* Blockchain Tab */}
         <TabsContent value="blockchain" className="space-y-6">
-
-      {/* Token Minting Section */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Blocks className="h-5 w-5" />
-            Token Blockchain Minting
-          </CardTitle>
-          <CardDescription>
-            Converti i token pending in veri token ERC-20 sulla blockchain
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex items-center justify-between p-4 bg-gradient-to-r from-orange-50 to-green-50 rounded-lg border">
-            <div>
-              <p className="text-sm text-gray-600">Token da convertire:</p>
-              <p className="text-2xl font-bold text-orange-600">
-                {user?.tokens_pending || 0} token pending
-              </p>
-            </div>
-            <div className="text-center">
-              <p className="text-sm text-gray-600">→</p>
-            </div>
-            <div>
-              <p className="text-sm text-gray-600">Token blockchain:</p>
-              <p className="text-2xl font-bold text-green-600">
-                {user?.tokens_minted || 0} token minted
-              </p>
-            </div>
-          </div>
-          
-          <Button 
-            onClick={simulateTokenMinting}
-            disabled={!user || user.tokens_pending === 0 || mintingTokens}
-            className="w-full bg-gradient-to-r from-orange-500 to-green-500 hover:from-orange-600 hover:to-green-600"
-          >
-            {mintingTokens ? (
-              <>
-                <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                Minting in corso...
-              </>
-            ) : (
-              <>
-                <Blocks className="h-4 w-4 mr-2" />
-                Converti in Token Blockchain ({user?.tokens_pending || 0})
-              </>
-            )}
-          </Button>
-          
-          {user?.tokens_pending === 0 && (
-            <p className="text-sm text-gray-500 text-center">
-              Nessun token pending da convertire. Aggiungi attività per guadagnare token!
-            </p>
-          )}
-        </CardContent>
-      </Card>
 
       {/* Blockchain Transactions */}
       <Card>
