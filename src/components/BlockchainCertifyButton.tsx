@@ -54,31 +54,68 @@ const BlockchainCertifyButton: React.FC<BlockchainCertifyButtonProps> = ({
     try {
       console.log(`🚀 Starting blockchain certification for activity ${activityId}`);
 
-      // Check if already certified on blockchain
-      const isAlreadyCertified = await blockchain.isActivityCertified(activityId);
-      if (isAlreadyCertified) {
-        toast({
-          title: "Già certificata",
-          description: "Questa attività è già stata certificata on-chain",
-          variant: "destructive"
-        });
-        return;
-      }
-
       // Show initial confirmation
       toast({
         title: "🔗 Certificazione Blockchain",
         description: "Inizio certificazione on-chain...",
       });
 
+      // Check if already certified first
+      console.log(`🔍 Checking if activity is already certified...`);
+      try {
+        const isAlreadyCertified = await blockchain.isActivityCertified(activityId);
+        console.log(`🔍 Activity ${activityId} certification status: ${isAlreadyCertified}`);
+        
+        if (isAlreadyCertified) {
+          toast({
+            title: "Già certificata",
+            description: "Questa attività è già stata certificata on-chain",
+            variant: "destructive"
+          });
+          return;
+        }
+      } catch (checkError) {
+        console.error(`⚠️ Error checking certification status:`, checkError);
+        // Continue anyway and let the contract handle it
+      }
+
       // Certify on blockchain
       console.log(`📝 Certifying activity on blockchain: ${activityData.description}`);
+      
+      // Debug: Log all parameters before sending to contract
+      const debugParams = {
+        activityId: activityId,
+        activityIdType: typeof activityId,
+        activityIdLength: activityId?.length,
+        co2SavedOriginal: activityData.co2_saved,
+        co2SavedGrams: Math.round(activityData.co2_saved * 1000),
+        activityType: activityData.type,
+        activityTypeType: typeof activityData.type,
+        description: activityData.description,
+        descriptionType: typeof activityData.description,
+        descriptionLength: activityData.description?.length
+      };
+      console.log('🔍 Contract parameters debug:', debugParams);
+      
+      // Validate parameters before sending
+      if (!activityId || activityId.trim().length === 0) {
+        throw new Error(`Invalid activityId: '${activityId}'`);
+      }
+      if (!activityData.co2_saved || activityData.co2_saved <= 0) {
+        throw new Error(`Invalid co2_saved: '${activityData.co2_saved}'`);
+      }
+      if (!activityData.type || activityData.type.trim().length === 0) {
+        throw new Error(`Invalid activity type: '${activityData.type}'`);
+      }
+      if (!activityData.description || activityData.description.trim().length === 0) {
+        throw new Error(`Invalid description: '${activityData.description}'`);
+      }
+      
       const txHash = await blockchain.certifyActivity(
-        activityId,
-        blockchain.userAddress,
+        activityId.trim(),
         Math.round(activityData.co2_saved * 1000), // Convert to grams
-        activityData.type,
-        activityData.description
+        activityData.type.trim(),
+        activityData.description.trim()
       );
 
       console.log(`⛓️ Blockchain transaction: ${txHash}`);

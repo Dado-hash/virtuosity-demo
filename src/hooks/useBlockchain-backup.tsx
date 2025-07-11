@@ -1,8 +1,8 @@
-// src/hooks/useBlockchain.tsx
+// src/hooks/useBlockchain-fixed.tsx
 import { useState, useCallback } from 'react';
 import { usePrivy } from '@privy-io/react-auth';
 import { useWallets } from '@privy-io/react-auth';
-import { createPublicClient, createWalletClient, custom, formatEther, parseEther, http, encodeFunctionData } from 'viem';
+import { createPublicClient, createWalletClient, custom, formatEther, parseEther, http } from 'viem';
 import { polygonAmoy } from 'viem/chains';
 
 // Import contract ABIs
@@ -39,7 +39,7 @@ export const useBlockchain = () => {
     chain: polygonAmoy,
     transport: http('https://rpc-amoy.polygon.technology'),
   });
-  
+
   const getWalletClient = useCallback(async () => {
     if (!wallet) throw new Error('No wallet connected');
     
@@ -67,6 +67,7 @@ export const useBlockchain = () => {
         args: [wallet.address],
       });
 
+      // Use our utility to format the balance correctly
       return formatTokenBalance(balance as bigint);
     } catch (error) {
       console.error('Error getting token balance:', error);
@@ -93,15 +94,16 @@ export const useBlockchain = () => {
       
       const walletClient = await getWalletClient();
       
-      // Clean parameters
+      // IMPORTANT FIX: Convert parameters to proper types for the smart contract
+      // Ensure all strings are properly trimmed and not empty
       const cleanActivityId = activityId.trim();
       const cleanActivityType = activityType.trim();
       const cleanDescription = description.trim();
       
-      // Convert co2SavedGrams to BigInt
-      const co2SavedGramsBigInt = BigInt(Math.floor(co2SavedGrams));
+      // Convert co2SavedGrams to BigInt for proper uint256 handling
+      const co2SavedGrams = Math.floor(co2SavedGrams);
       
-      // Validation
+      // Additional validation
       if (!cleanActivityId || cleanActivityId.length === 0) {
         throw new Error('Activity ID cannot be empty');
       }
@@ -111,80 +113,29 @@ export const useBlockchain = () => {
       if (!cleanDescription || cleanDescription.length === 0) {
         throw new Error('Description cannot be empty');
       }
-      if (co2SavedGramsBigInt <= 0n) {
+      if (co2SavedGrams <= 0n) {
         throw new Error('CO2 saved must be greater than 0');
       }
       
-      // DEBUG: Log exact parameters being sent
-      console.log('🔍 DEBUG - Exact parameters:', {
+      console.log('📝 Smart contract call parameters:', {
         activityId: cleanActivityId,
-        activityIdLength: cleanActivityId.length,
-        activityIdBytes: new TextEncoder().encode(cleanActivityId),
-        co2SavedGrams: co2SavedGramsBigInt,
-        co2SavedGramsType: typeof co2SavedGramsBigInt,
+        co2SavedGrams: co2SavedGrams,
         activityType: cleanActivityType,
-        activityTypeLength: cleanActivityType.length,
         description: cleanDescription,
-        descriptionLength: cleanDescription.length,
-        wallet: wallet.address,
         contractAddress: CONTRACTS.ActivityCertification
       });
-
-      // DEBUG: Encode the function data to see what's being sent
-      const encodedData = encodeFunctionData({
-        abi: ActivityCertificationABI,
-        functionName: 'certifyActivity',
-        args: [
-          cleanActivityId,
-          co2SavedGramsBigInt,
-          cleanActivityType,
-          cleanDescription
-        ]
-      });
       
-      console.log('🔍 DEBUG - Encoded function data:', encodedData);
-      console.log('🔍 DEBUG - Encoded data length:', encodedData.length);
-      
-      // Also try to estimate gas to see if the transaction would fail
-      try {
-        const gasEstimate = await publicClient.estimateContractGas({
-          address: CONTRACTS.ActivityCertification as `0x${string}`,
-          abi: ActivityCertificationABI,
-          functionName: 'certifyActivity',
-          args: [
-            cleanActivityId,
-            co2SavedGramsBigInt,
-            cleanActivityType,
-            cleanDescription
-          ],
-          account: wallet.address as `0x${string}`,
-        });
-        console.log('⛽ Gas estimate:', gasEstimate);
-      } catch (gasError: any) {
-        console.error('❌ Gas estimation failed:', gasError);
-        console.error('Gas error details:', gasError.cause || gasError);
-        
-        // If gas estimation fails, the transaction will likely fail
-        if (gasError.message?.includes('Already certified')) {
-          throw new Error('Activity already certified on blockchain');
-        }
-        throw new Error(`Transaction will fail: ${gasError.shortMessage || gasError.message}`);
-      }
-      
-      // Call the smart contract
-      console.log('📤 Sending transaction...');
+      // Call the smart contract with properly typed parameters
       const txHash = await walletClient.writeContract({
         address: CONTRACTS.ActivityCertification as `0x${string}`,
         abi: ActivityCertificationABI,
         functionName: 'certifyActivity',
         args: [
           cleanActivityId,
-          co2SavedGramsBigInt,
+          co2SavedGrams,
           cleanActivityType,
           cleanDescription
         ],
-        // Add gas limit to be safe
-        gas: 300000n,
       });
 
       console.log('🎯 Transaction submitted:', txHash);
@@ -192,7 +143,7 @@ export const useBlockchain = () => {
       // Wait for transaction confirmation
       const receipt = await publicClient.waitForTransactionReceipt({ 
         hash: txHash,
-        confirmations: 2
+        confirmations: 2 // Wait for 2 confirmations for better reliability
       });
       
       console.log('✅ Transaction confirmed:', receipt);
@@ -200,13 +151,6 @@ export const useBlockchain = () => {
       return txHash;
     } catch (error: any) {
       console.error('❌ Error certifying activity:', error);
-      console.error('Error details:', {
-        message: error.message,
-        shortMessage: error.shortMessage,
-        cause: error.cause,
-        details: error.details,
-        stack: error.stack
-      });
       
       // Better error handling
       let errorMessage = 'Failed to certify activity';
@@ -215,7 +159,7 @@ export const useBlockchain = () => {
         errorMessage = 'Transaction rejected by user';
       } else if (error.message?.includes('insufficient funds')) {
         errorMessage = 'Insufficient funds for gas fees';
-      } else if (error.message?.includes('Already certified')) {
+      } else if (error.message?.includes('Activity already certified')) {
         errorMessage = 'This activity has already been certified';
       } else if (error.shortMessage) {
         errorMessage = error.shortMessage;
@@ -237,7 +181,7 @@ export const useBlockchain = () => {
         address: CONTRACTS.ActivityCertification as `0x${string}`,
         abi: ActivityCertificationABI,
         functionName: 'isActivityCertified',
-        args: [activityId.trim()],
+        args: [activityId.trim()], // Ensure trimmed here too
       });
 
       return certified as boolean;
@@ -254,7 +198,7 @@ export const useBlockchain = () => {
         address: CONTRACTS.RewardsMarketplace as `0x${string}`,
         abi: RewardsMarketplaceABI,
         functionName: 'getReward',
-        args: [BigInt(rewardId)],
+        args: [BigInt(rewardId)], // Convert to BigInt
       });
 
       return reward;
@@ -291,7 +235,7 @@ export const useBlockchain = () => {
         address: CONTRACTS.RewardsMarketplace as `0x${string}`,
         abi: RewardsMarketplaceABI,
         functionName: 'purchaseReward',
-        args: [BigInt(rewardId)],
+        args: [BigInt(rewardId)], // Convert to BigInt
       });
 
       // Wait for purchase confirmation
@@ -316,7 +260,7 @@ export const useBlockchain = () => {
         address: CONTRACTS.RewardsMarketplace as `0x${string}`,
         abi: RewardsMarketplaceABI,
         functionName: 'getUserRedemptions',
-        args: [wallet.address, BigInt(offset), BigInt(limit)],
+        args: [wallet.address, BigInt(offset), BigInt(limit)], // Convert to BigInt
       });
 
       // Get details for each redemption

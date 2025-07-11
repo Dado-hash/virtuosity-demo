@@ -48,9 +48,12 @@ contract VirtuosityToken is ERC20, Ownable {
         require(to != address(0), "Indirizzo non valido");
         require(amount > 0, "Amount deve essere maggiore di 0");
         
-        _mint(to, amount);
+        // Converti amount in wei (18 decimali)
+        uint256 amountInWei = amount * 10**decimals();
         
-        emit TokensMintedForActivity(to, amount, activityId, co2Saved);
+        _mint(to, amountInWei);
+        
+        emit TokensMintedForActivity(to, amountInWei, activityId, co2Saved);
     }
     
     /**

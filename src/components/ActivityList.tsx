@@ -24,6 +24,7 @@ import {
 } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 import { Database } from '@/lib/supabase';
+import { supabase } from '@/lib/supabase';
 
 type ActivityRow = Database['public']['Tables']['activities']['Row'];
 
@@ -34,6 +35,33 @@ const ActivityList = () => {
   const { certifyActivityBlockchain, certifyingId, isConnected, userAddress } = useActivityCertification();
   const [selectedActivity, setSelectedActivity] = useState<ActivityRow | null>(null);
   const [filter, setFilter] = useState<'all' | 'verified' | 'pending'>('all');
+
+  // Debug function to check activity status directly from database
+  const checkActivityStatus = async (activityId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('activities')
+        .select('id, verified, blockchain_tx_hash')
+        .eq('id', activityId)
+        .eq('user_id', user.id)
+        .single();
+      
+      if (error) {
+        console.error(`❌ Error checking activity status:`, error);
+        return null;
+      }
+      
+      console.log(`🔍 Activity ${activityId} status:`, {
+        verified: data.verified,
+        blockchain_tx_hash: data.blockchain_tx_hash
+      });
+      
+      return data;
+    } catch (error) {
+      console.error(`❌ Error in checkActivityStatus:`, error);
+      return null;
+    }
+  };
 
   const handleCertifyActivity = async (activityId: string) => {
     if (!user) {
@@ -58,11 +86,36 @@ const ActivityList = () => {
       // This will handle both blockchain transaction AND database update
       await certifyActivityBlockchain(activityId);
       
-      // Add a small delay to ensure database is updated
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      console.log(`🔄 Refreshing activities list...`);
       
-      // Refresh activities to show updated status
-      await refetch();
+      // Add multiple refresh attempts with delays
+      let refreshAttempts = 0;
+      const maxRefreshAttempts = 3;
+      
+      while (refreshAttempts < maxRefreshAttempts) {
+        await new Promise(resolve => setTimeout(resolve, 1000 * (refreshAttempts + 1)));
+        
+        console.log(`🔄 Refresh attempt ${refreshAttempts + 1}/${maxRefreshAttempts}`);
+        
+        // Check database directly first
+        const dbStatus = await checkActivityStatus(activityId);
+        
+        // Then refresh the UI
+        await refetch();
+        
+        // Check if the activity is now marked as verified
+        if (dbStatus?.verified) {
+          console.log(`✅ Activity successfully verified in database and UI updated`);
+          break;
+        }
+        
+        refreshAttempts++;
+        
+        if (refreshAttempts === maxRefreshAttempts) {
+          console.warn(`⚠️ Activity not marked as verified after ${maxRefreshAttempts} attempts`);
+          console.warn(`⚠️ This might indicate a database update issue`);
+        }
+      }
       
     } catch (error) {
       console.error('Error in handleCertifyActivity:', error);
