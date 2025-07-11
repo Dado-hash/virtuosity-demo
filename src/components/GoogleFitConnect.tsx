@@ -157,56 +157,6 @@ const GoogleFitConnect = () => {
             </Alert>
           )}
 
-          {/* Debug Info */}
-          <div className="p-3 bg-gray-50 rounded-lg border text-xs space-y-1">
-            <p><strong>Debug Info:</strong></p>
-            <p>Client ID: {import.meta.env.VITE_GOOGLE_CLIENT_ID ? '✅ Configured' : '❌ Missing'}</p>
-            <p>API Key: {import.meta.env.VITE_GOOGLE_API_KEY ? '✅ Configured' : '❌ Missing'}</p>
-            <p>GAPI Available: {typeof window !== 'undefined' && window.gapi ? '✅ Yes' : '❌ No'}</p>
-            <p>Current URL: {window.location.origin}</p>
-            <p>Auth Instance: {typeof window !== 'undefined' && window.gapi?.auth2?.getAuthInstance ? '✅ Ready' : '❌ Not Ready'}</p>
-          </div>
-
-          {/* Simple Test Button */}
-          <div className="p-3 bg-yellow-50 rounded-lg border border-yellow-200">
-            <h4 className="font-medium text-yellow-800 mb-2">🧪 Test Semplificato</h4>
-            <Button 
-              variant="outline"
-              size="sm"
-              onClick={() => {
-                console.log('🧪 Testing basic gapi availability...');
-                console.log('window.gapi:', window.gapi);
-                console.log('gapi.auth2:', window.gapi?.auth2);
-                console.log('authInstance:', window.gapi?.auth2?.getAuthInstance());
-                if (window.gapi?.auth2?.getAuthInstance()) {
-                  console.log('isSignedIn:', window.gapi.auth2.getAuthInstance().isSignedIn.get());
-                }
-              }}
-            >
-              🔍 Test GAPI Status
-            </Button>
-          </div>
-
-          {/* Direct OAuth Test */}
-          <div className="p-3 bg-red-50 rounded-lg border border-red-200">
-            <h4 className="font-medium text-red-800 mb-2">🚨 Test OAuth Diretto</h4>
-            <p className="text-sm text-red-700 mb-2">Test OAuth senza JavaScript wrapper</p>
-            <Button 
-              variant="outline"
-              size="sm"
-              onClick={() => {
-                const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
-                const redirectUri = encodeURIComponent(window.location.origin);
-                const scope = encodeURIComponent('profile email');
-                const authUrl = `https://accounts.google.com/oauth2/auth?client_id=${clientId}&redirect_uri=${redirectUri}&scope=${scope}&response_type=code&access_type=offline`;
-                console.log('🚨 Opening direct OAuth URL:', authUrl);
-                window.open(authUrl, '_blank', 'width=500,height=600');
-              }}
-            >
-              🚨 Test OAuth Diretto
-            </Button>
-          </div>
-
           {/* Sync Options */}
           {isConnected && (
             <div className="space-y-3">

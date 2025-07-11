@@ -45,7 +45,7 @@ const SupabaseTest = () => {
         co2_saved: co2Saved,
         tokens_earned: tokensEarned,
         distance: distance,
-        verified: true
+        verified: false
       });
 
       setTestActivity({ type: 'walking', distance: '', description: '' });
@@ -117,7 +117,7 @@ const SupabaseTest = () => {
   return (
     <div className="max-w-6xl mx-auto p-6 space-y-6">
       <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold">Supabase Integration Test</h1>
+        <h1 className="text-3xl font-bold">Integration Test</h1>
         <Button variant="outline" onClick={logout}>
           Logout
         </Button>
