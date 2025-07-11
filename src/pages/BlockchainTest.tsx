@@ -230,10 +230,11 @@ const BlockchainTest = () => {
           </Button>
           
           <div className="text-sm text-gray-600 space-y-2">
-            <p>• ✅ I contratti sono deployati e configurati</p>
+            <p>• ✅ I contratti sono deployati e configurati (NUOVA VERSIONE)</p>
             <p>• ✅ L'hook useBlockchain è integrato</p>
-            <p>• ✅ Il SupabaseProvider usa la blockchain</p>
-            <p>• 🔧 Vai su /activities per testare la certificazione</p>
+            <p>• ✅ Hook useActivityCertification implementato</p>
+            <p>• ✅ ActivityList component aggiornato</p>
+            <p>• 🎉 <strong>Auto-certificazione ATTIVA! Vai su /activities!</strong></p>
           </div>
         </CardContent>
       </Card>

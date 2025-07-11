@@ -76,10 +76,9 @@ export const useBlockchain = () => {
     }
   }, [wallet?.address, publicClient]);
 
-  // Certify an activity (only contract owner can do this)
+  // Certify an activity (users can now self-certify)
   const certifyActivity = useCallback(async (
     activityId: string,
-    userAddress: string,
     co2SavedGrams: number,
     activityType: string,
     description: string
@@ -97,7 +96,7 @@ export const useBlockchain = () => {
         address: CONTRACTS.ActivityCertification as `0x${string}`,
         abi: ActivityCertificationABI,
         functionName: 'certifyActivity',
-        args: [activityId, userAddress, co2SavedGrams, activityType, description],
+        args: [activityId, co2SavedGrams, activityType, description],
       });
 
       // Wait for transaction confirmation

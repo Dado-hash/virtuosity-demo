@@ -49,22 +49,21 @@ contract ActivityCertification is Ownable, ReentrancyGuard {
     /**
      * @dev Certifica un'attività e distribuisce token all'utente
      * @param activityId ID univoco dell'attività dal database
-     * @param user Indirizzo dell'utente
      * @param co2SavedGrams CO2 risparmiata in grammi
      * @param activityType Tipo di attività
      * @param description Descrizione dell'attività
      */
     function certifyActivity(
         string memory activityId,
-        address user,
         uint256 co2SavedGrams,
         string memory activityType,
         string memory description
-    ) external onlyOwner nonReentrant {
+    ) external nonReentrant {
         require(bytes(activityId).length > 0, "Activity ID non valido");
-        require(user != address(0), "Indirizzo utente non valido");
         require(co2SavedGrams > 0, "CO2 saved deve essere maggiore di 0");
         require(!certifiedActivities[activityId].certified, "Attivita gia certificata");
+        
+        address user = msg.sender; // L'utente che chiama la funzione
         
         // Calcola i token da assegnare in base alla CO2 risparmiata
         uint256 tokensToMint = calculateTokensFromCO2(co2SavedGrams);

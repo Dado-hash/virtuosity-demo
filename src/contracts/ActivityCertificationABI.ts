@@ -187,11 +187,6 @@ export const ActivityCertificationABI = [
         "type": "string"
       },
       {
-        "internalType": "address",
-        "name": "user",
-        "type": "address"
-      },
-      {
         "internalType": "uint256",
         "name": "co2SavedGrams",
         "type": "uint256"

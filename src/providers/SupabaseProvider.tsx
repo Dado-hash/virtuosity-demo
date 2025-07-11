@@ -311,7 +311,7 @@ export const SupabaseProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     }
 
     try {
-      console.log(`🏆 Starting blockchain certification for activity ${activityId}`);
+      console.log(`🏆 Starting certification for activity ${activityId}`);
       
       // Get activity details from database
       const { data: activity, error } = await supabase
@@ -325,18 +325,21 @@ export const SupabaseProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         throw new Error('Activity not found');
       }
 
-      // For now, we'll simulate blockchain certification by updating the database
-      // The actual blockchain integration will be handled in the React components
-      // that can use the useBlockchain hook properly
+      if (activity.verified) {
+        throw new Error('Activity already certified');
+      }
+
+      console.log(`📝 Activity found: ${activity.description}`);
+      console.log(`🎯 Will earn ${activity.tokens_earned} tokens for ${activity.co2_saved} kg CO2`);
       
-      console.log(`📝 Marking activity as blockchain certified: ${activity.description}`);
+      // Note: Actual blockchain certification is handled by components that call this function
+      // This function only updates the database after successful blockchain transaction
       
       // Update database to mark as verified
       await supabase
         .from('activities')
         .update({ 
           verified: true,
-          blockchain_tx_hash: `simulated-tx-${Date.now()}`, // Placeholder
           updated_at: new Date().toISOString()
         })
         .eq('id', activityId);
@@ -361,7 +364,7 @@ export const SupabaseProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         tokens_minted: newMintedTokens
       } : null);
       
-      console.log(`✅ Activity marked as certified! (Blockchain integration in components)`);
+      console.log(`✅ Activity certified! Tokens moved from pending to minted.`);
       
     } catch (error) {
       console.error('💥 Error in certifyActivity:', error);

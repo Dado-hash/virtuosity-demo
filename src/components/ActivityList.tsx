@@ -6,7 +6,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useSupabase } from '@/providers/SupabaseProvider';
 import { useActivities, activityTypes, getActivitySourceInfo } from '@/hooks/useSupabaseData';
-import BlockchainCertifyButton from '@/components/BlockchainCertifyButton';
+import { useActivityCertification } from '@/hooks/useActivityCertification';
 import { 
   Activity, 
   Clock, 
@@ -19,7 +19,8 @@ import {
   RefreshCw,
   Search,
   Filter,
-  Eye
+  Eye,
+  Wallet
 } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 import { Database } from '@/lib/supabase';
@@ -28,9 +29,9 @@ type ActivityRow = Database['public']['Tables']['activities']['Row'];
 
 const ActivityList = () => {
   const { activities, loading, refetch } = useActivities();
-  const { certifyActivity, user } = useSupabase();
+  const { user } = useSupabase();
   const { toast } = useToast();
-  const [certifyingId, setCertifyingId] = useState<string | null>(null);
+  const { certifyActivityBlockchain, certifyingId, isConnected, userAddress } = useActivityCertification();
   const [selectedActivity, setSelectedActivity] = useState<ActivityRow | null>(null);
   const [filter, setFilter] = useState<'all' | 'verified' | 'pending'>('all');
 
@@ -44,38 +45,28 @@ const ActivityList = () => {
       return;
     }
 
-    setCertifyingId(activityId);
+    if (!isConnected) {
+      toast({
+        title: "Wallet non connesso",
+        description: "Connetti il wallet per certificare on-chain",
+        variant: "destructive"
+      });
+      return;
+    }
     
     try {
-      await certifyActivity(activityId);
+      // This will handle both blockchain transaction AND database update
+      await certifyActivityBlockchain(activityId);
       
       // Add a small delay to ensure database is updated
-      await new Promise(resolve => setTimeout(resolve, 500));
+      await new Promise(resolve => setTimeout(resolve, 1000));
       
       // Refresh activities to show updated status
       await refetch();
       
-      toast({
-        title: "✅ Certificazione Completata",
-        description: "L'attività è stata certificata con successo e i token sono stati convertiti!",
-      });
-      
     } catch (error) {
-      console.error('Error certifying activity:', error);
-      
-      let errorMessage = "Si è verificato un errore durante la certificazione dell'attività";
-      
-      if (error.message) {
-        errorMessage += `: ${error.message}`;
-      }
-      
-      toast({
-        title: "❌ Errore Certificazione",
-        description: errorMessage,
-        variant: "destructive"
-      });
-    } finally {
-      setCertifyingId(null);
+      console.error('Error in handleCertifyActivity:', error);
+      // Error handling is already done in the hook
     }
   };
 
@@ -131,6 +122,25 @@ const ActivityList = () => {
               <p className="text-gray-600 mt-1">
                 Gestisci e certifica le tue attività sostenibili
               </p>
+              {/* Wallet Status */}
+              <div className="flex items-center gap-2 mt-2">
+                {isConnected ? (
+                  <Badge className="bg-green-100 text-green-800">
+                    <Wallet className="h-3 w-3 mr-1" />
+                    Wallet connesso
+                  </Badge>
+                ) : (
+                  <Badge variant="outline" className="text-orange-600 border-orange-200">
+                    <Wallet className="h-3 w-3 mr-1" />
+                    Wallet non connesso
+                  </Badge>
+                )}
+                {userAddress && (
+                  <span className="text-xs text-gray-500">
+                    {userAddress.slice(0, 6)}...{userAddress.slice(-4)}
+                  </span>
+                )}
+              </div>
             </div>
             <Button onClick={refetch} variant="outline" size="sm">
               <RefreshCw className="h-4 w-4 mr-2" />
@@ -378,8 +388,12 @@ const ActivityList = () => {
                               {!activity.verified ? (
                                 <Button 
                                   onClick={() => handleCertifyActivity(activity.id)}
-                                  disabled={isCertifying}
-                                  className="bg-blue-600 hover:bg-blue-700"
+                                  disabled={isCertifying || !isConnected}
+                                  className={`${
+                                    !isConnected 
+                                      ? 'bg-gray-400 hover:bg-gray-400 cursor-not-allowed' 
+                                      : 'bg-blue-600 hover:bg-blue-700'
+                                  }`}
                                   size="sm"
                                 >
                                   {isCertifying ? (
@@ -387,18 +401,30 @@ const ActivityList = () => {
                                       <RefreshCw className="h-4 w-4 animate-spin mr-2" />
                                       Certificando...
                                     </>
+                                  ) : !isConnected ? (
+                                    <>
+                                      <Wallet className="h-4 w-4 mr-2" />
+                                      Wallet Required
+                                    </>
                                   ) : (
                                     <>
                                       <Shield className="h-4 w-4 mr-2" />
-                                      Certifica
+                                      Certifica Blockchain
                                     </>
                                   )}
                                 </Button>
                               ) : (
-                                <Badge className="bg-green-100 text-green-800 px-3 py-1">
-                                  <Award className="h-3 w-3 mr-1" />
-                                  Certificata
-                                </Badge>
+                                <div className="flex flex-col items-end gap-1">
+                                  <Badge className="bg-green-100 text-green-800 px-3 py-1">
+                                    <Award className="h-3 w-3 mr-1" />
+                                    Certificata
+                                  </Badge>
+                                  {activity.blockchain_tx_hash && (
+                                    <span className="text-xs text-gray-500 font-mono">
+                                      TX: {activity.blockchain_tx_hash.slice(0, 8)}...
+                                    </span>
+                                  )}
+                                </div>
                               )}
                             </div>
                           </div>
@@ -416,9 +442,12 @@ const ActivityList = () => {
             <Alert>
               <AlertCircle className="h-4 w-4" />
               <AlertDescription>
-                <strong>Certificazione Individuale:</strong> Ogni attività può essere certificata singolarmente on-chain. 
-                Questo convertirà i token pending in token minted e creerà un certificato blockchain.
+                <strong>Certificazione Blockchain:</strong> Ogni attività può essere certificata on-chain usando smart contracts su Polygon. 
+                Questo convertirà i token pending in token minted e creerà un certificato blockchain immutabile.
                 {pendingCount > 1 && ` Hai ${pendingCount} attività pronte per la certificazione.`}
+                {!isConnected && (
+                  <><br /><strong>Nota:</strong> Devi connettere il wallet per procedere con la certificazione blockchain.</>
+                )}
               </AlertDescription>
             </Alert>
           )}
