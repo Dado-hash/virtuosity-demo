@@ -40,7 +40,11 @@ export const VirtuosityPrivyProvider = ({ children }: VirtuosityPrivyProviderPro
       appId="cmckjxj1c00fgkw0n6qrf826e"
       config={privyConfig}
     >
-      {children}
+      <QueryClientProvider client={queryClient}>
+        <WagmiProvider config={wagmiConfig}>
+          {children}
+        </WagmiProvider>
+      </QueryClientProvider>
     </PrivyProvider>
   );
 };

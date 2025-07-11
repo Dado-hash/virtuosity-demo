@@ -24,6 +24,7 @@ import SupabaseTest from "./components/SupabaseTest";
 import GoogleFitConnect from "./components/GoogleFitConnect";
 import GoogleSignInTest from "./components/GoogleSignInTest";
 import ActivityList from "./components/ActivityList";
+import BlockchainTest from "./pages/BlockchainTest";
 
 const App = () => (
   <VirtuosityPrivyProvider>
@@ -46,6 +47,7 @@ const App = () => (
             <Route path="/auth-test" element={<AuthTest />} />
             <Route path="/supabase-test" element={<SupabaseTest />} />
             <Route path="/activities" element={<ActivityList />} />
+            <Route path="/blockchain-test" element={<BlockchainTest />} />
             <Route path="/googlefit-test" element={<GoogleFitConnect />} />
             <Route path="/google-signin-test" element={<GoogleSignInTest />} />
             <Route path="/digital-warranty-upload" element={<DigitalWarrantyUpload />} />

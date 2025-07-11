@@ -6,6 +6,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useSupabase } from '@/providers/SupabaseProvider';
 import { useActivities, activityTypes, getActivitySourceInfo } from '@/hooks/useSupabaseData';
+import BlockchainCertifyButton from '@/components/BlockchainCertifyButton';
 import { 
   Activity, 
   Clock, 
