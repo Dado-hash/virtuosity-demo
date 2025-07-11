@@ -184,7 +184,7 @@ export const useBlockchain = () => {
           cleanDescription
         ],
         // Add gas limit to be safe
-        gas: 300000n,
+        gas: 500000n,
       });
 
       console.log('🎯 Transaction submitted:', txHash);
