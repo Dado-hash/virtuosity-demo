@@ -92,16 +92,6 @@ export const activityTypes = {
     icon: '🚴‍♂️',
     color: 'blue'
   },
-  public_transport: {
-    label: 'Trasporto Pubblico',
-    icon: '🚌',
-    color: 'orange'
-  },
-  waste_recycling: {
-    label: 'Riciclo Rifiuti',
-    icon: '♻️',
-    color: 'emerald'
-  },
   other: {
     label: 'Altro',
     icon: '🌱',
