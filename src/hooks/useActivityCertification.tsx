@@ -23,15 +23,7 @@ export const useActivityCertification = () => {
     setCertifyingId(activityId);
 
     try {
-      console.log(`🚀 Starting full blockchain certification for activity ${activityId}`);
-      
-      // Verify contract connection
-      console.log(`🔍 Verifying contract connection...`);
-      console.log(`Contract addresses:`, {
-        ActivityCertification: blockchain.contracts.ActivityCertification,
-        VirtuosityToken: blockchain.contracts.VirtuosityToken,
-        userAddress: blockchain.userAddress
-      });
+      console.log(`🚀 Starting blockchain certification for activity ${activityId}`);
 
       // Get activity details from database first
       const { data: activity, error } = await supabase
@@ -49,13 +41,6 @@ export const useActivityCertification = () => {
         throw new Error('Activity already certified');
       }
 
-      console.log(`📝 Activity details:`, {
-        description: activity.description,
-        type: activity.type,
-        co2_saved: activity.co2_saved,
-        tokens_earned: activity.tokens_earned
-      });
-
       // Show progress toast
       toast({
         title: "🔗 Certificazione Blockchain",
@@ -63,20 +48,10 @@ export const useActivityCertification = () => {
       });
 
       // Step 1: Certify on blockchain
-      console.log(`⛓️ Calling blockchain contract for certification...`);
-      
-      // Sanitize and validate parameters before sending to contract
       const sanitizedActivityId = activityId.trim();
       const co2SavedGrams = Math.round(activity.co2_saved * 1000);
       const sanitizedActivityType = activity.type.trim();
       const sanitizedDescription = activity.description.trim();
-      
-      console.log(`📝 Contract parameters:`, {
-        activityId: sanitizedActivityId,
-        co2SavedGrams: co2SavedGrams,
-        activityType: sanitizedActivityType,
-        description: sanitizedDescription
-      });
       
       // Validate parameters
       if (!sanitizedActivityId || sanitizedActivityId.length === 0) {
@@ -102,7 +77,6 @@ export const useActivityCertification = () => {
       console.log(`✅ Blockchain transaction successful: ${txHash}`);
 
       // Step 2: Create blockchain transaction record
-      console.log(`📝 Creating blockchain transaction record...`);
       try {
         await createBlockchainTransaction({
           tx_hash: txHash,
@@ -122,36 +96,6 @@ export const useActivityCertification = () => {
       }
 
       // Step 3: Update activity in database (mark as verified)
-      console.log(`💾 Updating activity in database...`);
-      
-      // DEBUGGING: First, let's verify the activity exists and belongs to the user
-      console.log(`🔍 Verifying activity exists before update...`);
-      const { data: existingActivity, error: checkError } = await supabase
-        .from('activities')
-        .select('*')
-        .eq('id', activityId)
-        .eq('user_id', user.id)
-        .single();
-        
-      console.log(`🔍 Existing activity check:`, { existingActivity, checkError });
-      
-      if (checkError || !existingActivity) {
-        console.error(`❌ Activity not found for update:`, { activityId, userId: user.id, checkError });
-        throw new Error(`Activity not found for update: ${activityId} for user ${user.id}`);
-      }
-      
-      console.log(`✅ Activity exists and belongs to user:`, existingActivity);
-      
-      console.log(`🔍 Update parameters:`, {
-        activityId,
-        userId: user.id,
-        txHash,
-        updateData: {
-          verified: true,
-          updated_at: new Date().toISOString()
-        }
-      });
-      
       const { data: updateResult, error: updateError } = await supabase
         .from('activities')
         .update({
@@ -161,9 +105,7 @@ export const useActivityCertification = () => {
         })
         .eq('id', activityId)
         .eq('user_id', user.id)
-        .select(); // Add select to see what was updated
-
-      console.log(`🔍 Update result:`, { updateResult, updateError });
+        .select();
 
       if (updateError) {
         console.error(`❌ Error updating activity:`, updateError);
@@ -171,14 +113,12 @@ export const useActivityCertification = () => {
       }
       
       if (!updateResult || updateResult.length === 0) {
-        console.error(`❌ No rows were updated - check activity ID and user permissions`);
-        throw new Error(`No activity was updated - check activity ID: ${activityId} and user ID: ${user.id}`);
+        throw new Error(`No activity was updated - check activity ID: ${activityId}`);
       }
       
-      console.log(`✅ Activity marked as verified in database:`, updateResult[0]);
+      console.log(`✅ Activity marked as verified`);
 
       // Step 4: Update user token balances
-      console.log(`💰 Updating user token balances...`);
       const newPendingTokens = Math.max(0, user.tokens_pending - activity.tokens_earned);
       const newMintedTokens = user.tokens_minted + activity.tokens_earned;
       
@@ -193,7 +133,6 @@ export const useActivityCertification = () => {
 
       if (userUpdateError) {
         console.error(`❌ Error updating user tokens:`, userUpdateError);
-        // This is not critical - activity is still certified
         console.warn(`⚠️ User token update failed, but activity is certified`);
       } else {
         console.log(`✅ User tokens updated: pending ${newPendingTokens}, minted ${newMintedTokens}`);
