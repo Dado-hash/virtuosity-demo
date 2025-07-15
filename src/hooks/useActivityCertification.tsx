@@ -108,11 +108,11 @@ export const useActivityCertification = () => {
           tx_hash: txHash,
           type: 'token_mint',
           amount: activity.tokens_earned,
-          data: { 
+          data: JSON.stringify({ 
             activityId, 
             co2_saved: activity.co2_saved,
             description: activity.description 
-          },
+          }),
           status: 'confirmed'
         });
         console.log(`✅ Blockchain transaction record created`);
@@ -123,21 +123,59 @@ export const useActivityCertification = () => {
 
       // Step 3: Update activity in database (mark as verified)
       console.log(`💾 Updating activity in database...`);
-      const { error: updateError } = await supabase
+      
+      // DEBUGGING: First, let's verify the activity exists and belongs to the user
+      console.log(`🔍 Verifying activity exists before update...`);
+      const { data: existingActivity, error: checkError } = await supabase
+        .from('activities')
+        .select('*')
+        .eq('id', activityId)
+        .eq('user_id', user.id)
+        .single();
+        
+      console.log(`🔍 Existing activity check:`, { existingActivity, checkError });
+      
+      if (checkError || !existingActivity) {
+        console.error(`❌ Activity not found for update:`, { activityId, userId: user.id, checkError });
+        throw new Error(`Activity not found for update: ${activityId} for user ${user.id}`);
+      }
+      
+      console.log(`✅ Activity exists and belongs to user:`, existingActivity);
+      
+      console.log(`🔍 Update parameters:`, {
+        activityId,
+        userId: user.id,
+        txHash,
+        updateData: {
+          verified: true,
+          updated_at: new Date().toISOString()
+        }
+      });
+      
+      const { data: updateResult, error: updateError } = await supabase
         .from('activities')
         .update({
-          verified: true,
           blockchain_tx_hash: txHash,
+          verified: true,
           updated_at: new Date().toISOString()
         })
         .eq('id', activityId)
-        .eq('user_id', user.id); // Add user_id for extra security
+        .eq('user_id', user.id)
+        .select(); // Add select to see what was updated
+
+      console.log(`🔍 Update result:`, { updateResult, updateError });
 
       if (updateError) {
         console.error(`❌ Error updating activity:`, updateError);
         throw new Error(`Failed to update activity in database: ${updateError.message}`);
       }
-      console.log(`✅ Activity marked as verified in database`);
+      
+      if (!updateResult || updateResult.length === 0) {
+        console.error(`❌ No rows were updated - check activity ID and user permissions`);
+        throw new Error(`No activity was updated - check activity ID: ${activityId} and user ID: ${user.id}`);
+      }
+      
+      console.log(`✅ Activity marked as verified in database:`, updateResult[0]);
 
       // Step 4: Update user token balances
       console.log(`💰 Updating user token balances...`);
