@@ -1,4 +1,3 @@
-// src/hooks/useActivityCertification-fixed.tsx
 import { useState } from 'react';
 import { useBlockchain } from '@/hooks/useBlockchain';
 import { useSupabase } from '@/providers/SupabaseProvider';
@@ -62,7 +61,25 @@ export const useActivityCertification = () => {
         description: "Iniziando certificazione on-chain...",
       });
 
-      // Step 1: Certify on blockchain
+      // // Step 1: Check if already certified on blockchain
+      // console.log(`🔍 Checking if activity is already certified on blockchain...`);
+      
+      // let isAlreadyCertified;
+      // try {
+      //   isAlreadyCertified = await blockchain.isActivityCertified(activityId);
+      //   console.log(`🔍 Activity ${activityId} certification status: ${isAlreadyCertified}`);
+      // } catch (checkError) {
+      //   console.error(`❌ Error checking certification status:`, checkError);
+      //   // If we can't check, we'll proceed anyway and let the contract handle it
+      //   console.warn(`⚠️ Proceeding with certification despite check error`);
+      //   isAlreadyCertified = false;
+      // }
+      
+      // if (isAlreadyCertified) {
+      //   throw new Error('Activity already certified on blockchain');
+      // }
+
+      // Step 2: Certify on blockchain
       console.log(`⛓️ Calling blockchain contract for certification...`);
       
       // Sanitize and validate parameters before sending to contract
@@ -70,13 +87,6 @@ export const useActivityCertification = () => {
       const co2SavedGrams = Math.round(activity.co2_saved * 1000);
       const sanitizedActivityType = activity.type.trim();
       const sanitizedDescription = activity.description.trim();
-      
-      console.log(`📝 Contract parameters:`, {
-        activityId: sanitizedActivityId,
-        co2SavedGrams: co2SavedGrams,
-        activityType: sanitizedActivityType,
-        description: sanitizedDescription
-      });
       
       // Validate parameters
       if (!sanitizedActivityId || sanitizedActivityId.length === 0) {
@@ -101,7 +111,7 @@ export const useActivityCertification = () => {
 
       console.log(`✅ Blockchain transaction successful: ${txHash}`);
 
-      // Step 2: Create blockchain transaction record
+      // Step 3: Create blockchain transaction record
       console.log(`📝 Creating blockchain transaction record...`);
       try {
         await createBlockchainTransaction({
@@ -121,12 +131,13 @@ export const useActivityCertification = () => {
         // Continue anyway - the main transaction succeeded
       }
 
-      // Step 3: Update activity in database (mark as verified)
+      // Step 4: Update activity in database with blockchain hash
       console.log(`💾 Updating activity in database...`);
       const { error: updateError } = await supabase
         .from('activities')
         .update({ 
           verified: true,
+          blockchain_tx_hash: txHash,
           updated_at: new Date().toISOString()
         })
         .eq('id', activityId)
@@ -138,7 +149,7 @@ export const useActivityCertification = () => {
       }
       console.log(`✅ Activity marked as verified in database`);
 
-      // Step 4: Update user token balances
+      // Step 5: Update user token balances
       console.log(`💰 Updating user token balances...`);
       const newPendingTokens = Math.max(0, user.tokens_pending - activity.tokens_earned);
       const newMintedTokens = user.tokens_minted + activity.tokens_earned;
