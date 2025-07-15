@@ -9,7 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useSupabase } from '@/providers/SupabaseProvider';
 import { useGoogleFit } from '@/providers/GoogleFitProvider';
 import { useActivities, useRewards, calculateCO2Savings, calculateTokenReward, activityTypes, getActivitySourceInfo, isAutomaticActivity } from '@/hooks/useSupabaseData';
-import { Loader2, Plus, Coins, Leaf, Activity as ActivityIcon, Trophy, AlertCircle, Blocks, Clock, CheckCircle, XCircle, Heart } from 'lucide-react';
+import { Loader2, Plus, Coins, Leaf, Activity as ActivityIcon, Trophy, AlertCircle, Blocks, Clock, CheckCircle, XCircle, Heart, Eye, ExternalLink } from 'lucide-react';
 import { Database } from '@/lib/supabase';
 import { usePrivy } from '@privy-io/react-auth';
 import GoogleFitConnect from './GoogleFitConnect';
@@ -29,6 +29,32 @@ const SupabaseTest = () => {
   const [addingActivity, setAddingActivity] = useState(false);
   const [blockchainTxs, setBlockchainTxs] = useState<Database['public']['Tables']['blockchain_transactions']['Row'][]>([]);
   const [loadingTxs, setLoadingTxs] = useState(false);
+
+  // Utility functions for transaction display
+  const formatTransactionType = (type: string) => {
+    const typeMap = {
+      'certificate_mint': 'Certificate Mint',
+      'token_mint': 'Token Mint',
+      'reward_redeem': 'Reward Redeem'
+    };
+    return typeMap[type as keyof typeof typeMap] || type;
+  };
+
+  const formatTransactionHash = (hash: string | null) => {
+    if (!hash) return 'N/A';
+    return hash; // Mostra l'hash completo
+  };
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleString('it-IT', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit'
+    });
+  };
 
   const handleAddTestActivity = async () => {
     if (!testActivity.distance || !testActivity.description) return;
@@ -117,7 +143,7 @@ const SupabaseTest = () => {
   return (
     <div className="max-w-6xl mx-auto p-6 space-y-6">
       <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold">Integration Test</h1>
+        <h1 className="text-3xl font-bold">Activities center</h1>
         <Button variant="outline" onClick={logout}>
           Logout
         </Button>
@@ -310,46 +336,66 @@ const SupabaseTest = () => {
           ) : blockchainTxs.length > 0 ? (
             <div className="space-y-3">
               {blockchainTxs.map((tx) => (
-                <div key={tx.id} className="p-3 border rounded-lg">
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <div className="flex items-center gap-2 mb-1">
-                        <span className="capitalize font-medium">
-                          {tx.type.replace('_', ' ')}
-                        </span>
-                        <Badge 
-                          variant={tx.status === 'confirmed' ? 'default' : tx.status === 'failed' ? 'destructive' : 'secondary'}
-                          className="flex items-center gap-1"
-                        >
-                          {tx.status === 'confirmed' && <CheckCircle className="h-3 w-3" />}
-                          {tx.status === 'failed' && <XCircle className="h-3 w-3" />}
-                          {tx.status === 'pending' && <Clock className="h-3 w-3" />}
-                          {tx.status}
-                        </Badge>
-                      </div>
-                      {tx.amount && (
-                        <p className="text-sm text-gray-600">
-                          Quantità: {tx.amount} token
-                        </p>
-                      )}
-                      {tx.contract_address && (
-                        <p className="text-xs text-gray-500 font-mono">
-                          Contract: {tx.contract_address}
-                        </p>
-                      )}
-                      <p className="text-xs text-gray-400">
-                        {new Date(tx.created_at).toLocaleString('it-IT')}
-                      </p>
+                <div key={tx.id} className="p-3 sm:p-4 bg-gradient-to-r from-gray-50 to-blue-50 rounded-lg border border-gray-200 hover:shadow-md hover:scale-[1.01] transition-all duration-200">
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center gap-2">
+                      <span className="font-semibold text-sm text-gray-900">
+                        {formatTransactionType(tx.type)}
+                      </span>
+                      <Badge 
+                        variant={tx.status === 'confirmed' ? 'default' : tx.status === 'failed' ? 'destructive' : 'secondary'}
+                        className={`text-xs flex items-center gap-1 ${
+                          tx.status === 'confirmed' 
+                            ? 'bg-green-100 text-green-800' 
+                            : tx.status === 'failed'
+                            ? 'bg-red-100 text-red-800'
+                            : 'bg-orange-100 text-orange-800'
+                        }`}
+                      >
+                        {tx.status === 'confirmed' && <CheckCircle className="h-3 w-3" />}
+                        {tx.status === 'failed' && <XCircle className="h-3 w-3" />}
+                        {tx.status === 'pending' && <Clock className="h-3 w-3" />}
+                        {tx.status}
+                      </Badge>
                     </div>
                     <div className="text-right">
-                      {tx.tx_hash ? (
-                        <p className="text-xs font-mono text-blue-600">
-                          {tx.tx_hash.substring(0, 10)}...
+                      {tx.amount && (
+                        <p className="font-semibold text-sm text-blue-600">
+                          {tx.amount} tokens
                         </p>
-                      ) : (
-                        <p className="text-xs text-gray-400">Pending...</p>
                       )}
                     </div>
+                  </div>
+                  
+                  <div className="flex items-center justify-between">
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs text-gray-500 font-mono truncate">
+                        {formatTransactionHash(tx.transaction_hash || tx.tx_hash)}
+                      </p>
+                      <p className="text-xs text-gray-500 mt-1">
+                        {formatDate(tx.created_at)}
+                      </p>
+                      {tx.contract_address && (
+                        <p className="text-xs text-gray-400 font-mono mt-1">
+                          Contract: {tx.contract_address.slice(0, 10)}...
+                        </p>
+                      )}
+                    </div>
+                    <Button 
+                      size="sm" 
+                      variant="outline" 
+                      className="ml-3 text-xs hover:bg-purple-50 hover:border-purple-300 hover:scale-105 active:scale-95 transition-all duration-200"
+                      onClick={() => {
+                        const hash = tx.transaction_hash || tx.tx_hash;
+                        if (hash && hash !== 'N/A') {
+                          window.open(`https://amoy.polygonscan.com/tx/${hash}`, '_blank');
+                        }
+                      }}
+                      disabled={!tx.transaction_hash && !tx.tx_hash}
+                    >
+                      <Eye className="h-3 w-3 mr-1" />
+                      Explorer
+                    </Button>
                   </div>
                 </div>
               ))}
