@@ -105,15 +105,15 @@ export const useActivityCertification = () => {
       console.log(`📝 Creating blockchain transaction record...`);
       try {
         await createBlockchainTransaction({
-          transaction_hash: txHash,
-          type: 'activity_certification',
+          tx_hash: txHash,
+          type: 'token_mint',
           amount: activity.tokens_earned,
           data: { 
             activityId, 
             co2_saved: activity.co2_saved,
             description: activity.description 
           },
-          status: 'completed'
+          status: 'confirmed'
         });
         console.log(`✅ Blockchain transaction record created`);
       } catch (txRecordError) {
@@ -125,8 +125,9 @@ export const useActivityCertification = () => {
       console.log(`💾 Updating activity in database...`);
       const { error: updateError } = await supabase
         .from('activities')
-        .update({ 
+        .update({
           verified: true,
+          blockchain_tx_hash: txHash,
           updated_at: new Date().toISOString()
         })
         .eq('id', activityId)
