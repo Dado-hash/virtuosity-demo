@@ -98,61 +98,72 @@ const MarketplaceTest = () => {
     totalAvailable: '100'
   });
 
-  // Mock test rewards data
+  // Mock test rewards data - aligned with smart contract
   const mockRewards: TestReward[] = [
     {
       id: 1,
-      name: "Buono Caffè €5",
-      description: "Buono caffè utilizzabile presso bar convenzionati",
-      tokenCost: "50",
-      category: "food",
-      provider: "Coffee Partners",
-      available: 100,
+      name: "Pianta per Casa",
+      description: "Pianta verde per la tua casa",
+      tokenCost: "30",
+      category: "ambiente",
+      provider: "Green Garden",
+      available: 200,
       redeemed: 15,
       active: true
     },
     {
       id: 2,
-      name: "Sconto 10% E-commerce",
-      description: "Sconto del 10% su prodotti eco-friendly online",
-      tokenCost: "100",
+      name: "Buono Amazon €5",
+      description: "Buono sconto Amazon del valore di €5",
+      tokenCost: "50",
       category: "shopping",
-      provider: "EcoShop",
-      available: 50,
+      provider: "Amazon",
+      available: 100,
       redeemed: 8,
       active: true
     },
     {
       id: 3,
-      name: "Ingresso Museo Gratuito",
-      description: "Accesso gratuito ai musei civici di Milano",
-      tokenCost: "150",
-      category: "culture",
-      provider: "Comune di Milano",
-      available: 25,
+      name: "Biglietto Cinema",
+      description: "Biglietto per film al cinema",
+      tokenCost: "75",
+      category: "intrattenimento",
+      provider: "Cinema Partner",
+      available: 50,
       redeemed: 3,
       active: true
     },
     {
       id: 4,
-      name: "Gadget Aziendale Premium",
-      description: "Powerbank solare con logo aziendale",
-      tokenCost: "300",
-      category: "corporate",
-      provider: "Corporate Gifts",
-      available: 20,
+      name: "Buono Carburante €10",
+      description: "Buono carburante del valore di €10",
+      tokenCost: "100",
+      category: "trasporti",
+      provider: "Fuel Partner",
+      available: 25,
       redeemed: 2,
       active: true
     },
     {
       id: 5,
-      name: "Bike Sharing 1 Mese",
-      description: "Abbonamento bike sharing per 30 giorni",
-      tokenCost: "250",
-      category: "transport",
-      provider: "Green Mobility",
-      available: 30,
+      name: "Abbonamento Bike Sharing",
+      description: "30 giorni di bike sharing illimitato",
+      tokenCost: "120",
+      category: "trasporti",
+      provider: "Mobike",
+      available: 15,
       redeemed: 5,
+      active: true
+    },
+    {
+      id: 6,
+      name: "Corso Online Sostenibilità",
+      description: "Accesso a corso online sulla sostenibilità",
+      tokenCost: "150",
+      category: "educazione",
+      provider: "EcoLearning",
+      available: 30,
+      redeemed: 1,
       active: true
     }
   ];
@@ -260,22 +271,22 @@ const MarketplaceTest = () => {
   // Category colors and icons
   const getCategoryColor = (category: string) => {
     const colors = {
-      food: "bg-orange-100 text-orange-800",
+      ambiente: "bg-green-100 text-green-800",
       shopping: "bg-blue-100 text-blue-800", 
-      culture: "bg-purple-100 text-purple-800",
-      corporate: "bg-green-100 text-green-800",
-      transport: "bg-emerald-100 text-emerald-800"
+      intrattenimento: "bg-purple-100 text-purple-800",
+      trasporti: "bg-emerald-100 text-emerald-800",
+      educazione: "bg-yellow-100 text-yellow-800"
     };
     return colors[category as keyof typeof colors] || "bg-gray-100 text-gray-800";
   };
 
   const getCategoryIcon = (category: string) => {
     const icons = {
-      food: "🍽️",
+      ambiente: "🌱",
       shopping: "🛍️",
-      culture: "🏛️", 
-      corporate: "🏢",
-      transport: "🚇"
+      intrattenimento: "🎬", 
+      trasporti: "🚲",
+      educazione: "🎓"
     };
     return icons[category as keyof typeof icons] || "🎁";
   };
@@ -351,27 +362,33 @@ const MarketplaceTest = () => {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-[auto_auto_1fr_1fr] gap-2 md:gap-4">
             <div className="space-y-2">
               <Label>Connessione</Label>
-              <Badge variant={connected ? "default" : "destructive"} className="w-full justify-center">
+              <Badge
+                variant={connected ? "default" : "destructive"}
+                className="w-fit px-3 py-1 text-sm flex items-center gap-1"
+              >
                 {connected ? "✅ Connesso" : "❌ Disconnesso"}
               </Badge>
             </div>
             <div className="space-y-2">
-              <Label>Wallet Address</Label>
-              <p className="font-mono text-xs bg-gray-100 p-2 rounded">
-                {userAddress ? `${userAddress.slice(0, 6)}...${userAddress.slice(-4)}` : 'N/A'}
+              <Label>Network</Label>
+              <p className="font-mono text-xs bg-gray-100 p-2 rounded w-fit px-3">
+                Polygon Amoy
               </p>
             </div>
             <div className="space-y-2">
-              <Label>Network</Label>
-              <Badge variant="outline">Polygon Amoy</Badge>
+              <Label>Wallet Address</Label>
+              <p className="font-mono text-xs bg-gray-100 p-2 rounded">
+                {userAddress ? userAddress : 'N/A'}
+              </p>
             </div>
             <div className="space-y-2">
               <Label>Marketplace Contract</Label>
               <p className="font-mono text-xs bg-gray-100 p-2 rounded">
-                {contracts.RewardsMarketplace ? `${contracts.RewardsMarketplace.slice(0, 6)}...` : 'N/A'}
+                {contracts.RewardsMarketplace ? 
+                contracts.RewardsMarketplace : 'N/A'}
               </p>
             </div>
           </div>
@@ -564,7 +581,9 @@ const MarketplaceTest = () => {
                 </div>
               ) : userRedemptions.length > 0 ? (
                 <div className="space-y-4">
-                  {userRedemptions.map((redemption, index) => {
+                  {[...userRedemptions]
+                    .sort((a, b) => Number(b[2]) - Number(a[2])) // Ordina per data decrescente (più recenti prima)
+                    .map((redemption, index) => {
                     // Trova il reward corrispondente dai test rewards
                     const matchingReward = testRewards.find(r => r.id === Number(redemption[0]));
                     
@@ -594,7 +613,7 @@ const MarketplaceTest = () => {
                           <p>Redemption ID: <span className="font-mono text-xs">{redemption[5]?.toString() || 'N/A'}</span></p>
                           <p>Codice Riscatto: <span className="font-mono bg-yellow-100 px-2 py-1 rounded text-yellow-800 font-bold">{redemption[3] || 'N/A'}</span></p>
                           <p>Data: {redemption[2] ? new Date(Number(redemption[2]) * 1000).toLocaleString('it-IT') : 'N/A'}</p>
-                          <p>Stato: {redemption[4] ? '✅ Completato' : '⏳ In elaborazione'}</p>
+                          <p>Stato: ✅ Completato</p>
                           <p>Wallet: <span className="font-mono text-xs">{redemption[1] ? `${redemption[1].slice(0, 6)}...${redemption[1].slice(-4)}` : 'N/A'}</span></p>
                         </div>
                       </div>
