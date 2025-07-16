@@ -322,12 +322,14 @@ export const useBlockchain = () => {
       // Get details for each redemption
       const redemptions = await Promise.all(
         (redemptionIds as bigint[]).map(async (id) => {
-          return await publicClient.readContract({
+          const redemptionData = await publicClient.readContract({
             address: CONTRACTS.RewardsMarketplace as `0x${string}`,
             abi: RewardsMarketplaceABI,
             functionName: 'redemptions',
             args: [id],
           });
+          // Add the redemption ID to the data
+          return [...redemptionData as any[], id];
         })
       );
 

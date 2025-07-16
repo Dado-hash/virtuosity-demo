@@ -24,6 +24,7 @@ import SupabaseTest from "./components/SupabaseTest";
 import GoogleFitConnect from "./components/GoogleFitConnect";
 import GoogleSignInTest from "./components/GoogleSignInTest";
 import ActivityList from "./components/ActivityList";
+import MarketplaceTest from "./pages/MarketplaceTest";
 
 const App = () => (
   <VirtuosityPrivyProvider>
@@ -52,6 +53,7 @@ const App = () => (
             <Route path="/welfare-management" element={<WelfareManagement />} />
             <Route path="/rewards-management" element={<RewardsManagement />} />
             <Route path="/welfare-upload" element={<WelfareUpload />} />
+            <Route path="/marketplace-test" element={<MarketplaceTest />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
