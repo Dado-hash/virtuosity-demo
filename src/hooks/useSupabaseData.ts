@@ -73,11 +73,32 @@ export const calculateCO2Savings = {
 };
 
 // Token Calculation Utilities
+// Updated to match smart contract formula: 1 token = 1000 grams CO2
 export const calculateTokenReward = {
-  walking: (distance: number) => Math.floor(distance * 2), // 2 tokens per km
-  cycling: (distance: number) => Math.floor(distance * 3), // 3 tokens per km
-  publicTransport: (distance: number) => Math.floor(distance * 1.5), // 1.5 tokens per km
-  wasteRecycling: (weight: number) => Math.floor(weight * 5) // 5 tokens per kg
+  walking: (distance: number) => {
+    const co2SavedKg = calculateCO2Savings.walking(distance);
+    const co2SavedGrams = co2SavedKg * 1000;
+    const tokens = Math.floor(co2SavedGrams / 1000);
+    return tokens > 0 ? tokens : 1; // Minimum 1 token
+  },
+  cycling: (distance: number) => {
+    const co2SavedKg = calculateCO2Savings.cycling(distance);
+    const co2SavedGrams = co2SavedKg * 1000;
+    const tokens = Math.floor(co2SavedGrams / 1000);
+    return tokens > 0 ? tokens : 1; // Minimum 1 token
+  },
+  publicTransport: (distance: number) => {
+    const co2SavedKg = calculateCO2Savings.publicTransport(distance);
+    const co2SavedGrams = co2SavedKg * 1000;
+    const tokens = Math.floor(co2SavedGrams / 1000);
+    return tokens > 0 ? tokens : 1; // Minimum 1 token
+  },
+  wasteRecycling: (weight: number) => {
+    const co2SavedKg = calculateCO2Savings.wasteRecycling(weight);
+    const co2SavedGrams = co2SavedKg * 1000;
+    const tokens = Math.floor(co2SavedGrams / 1000);
+    return tokens > 0 ? tokens : 1; // Minimum 1 token
+  }
 };
 
 // Activity type mappings
