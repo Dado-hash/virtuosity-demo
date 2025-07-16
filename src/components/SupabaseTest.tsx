@@ -13,6 +13,7 @@ import { Loader2, Plus, Coins, Leaf, Activity as ActivityIcon, Trophy, AlertCirc
 import { Database } from '@/lib/supabase';
 import { usePrivy } from '@privy-io/react-auth';
 import GoogleFitConnect from './GoogleFitConnect';
+import TestNavigation from './TestNavigation';
 
 const SupabaseTest = () => {
   const { user: privyUser, login, logout, ready } = usePrivy();
@@ -142,6 +143,8 @@ const SupabaseTest = () => {
 
   return (
     <div className="max-w-6xl mx-auto p-6 space-y-6">
+      <TestNavigation />
+      
       <div className="flex justify-between items-center">
         <h1 className="text-3xl font-bold">Activities center</h1>
         <Button variant="outline" onClick={logout}>

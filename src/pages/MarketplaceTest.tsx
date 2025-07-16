@@ -31,6 +31,7 @@ import {
   Clock
 } from 'lucide-react';
 import { formatEther, parseEther } from 'viem';
+import TestNavigation from '@/components/TestNavigation';
 
 interface TestReward {
   id: number;
@@ -336,6 +337,8 @@ const MarketplaceTest = () => {
 
   return (
     <div className="max-w-7xl mx-auto p-4 md:p-6 space-y-6">
+      <TestNavigation />
+      
       {/* Header */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>

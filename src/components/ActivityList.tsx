@@ -29,6 +29,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Database } from '@/lib/supabase';
 import { supabase } from '@/lib/supabase';
 import { useNavigate } from 'react-router-dom';
+import TestNavigation from './TestNavigation';
 
 type ActivityRow = Database['public']['Tables']['activities']['Row'];
 
@@ -169,6 +170,8 @@ const ActivityList = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 via-blue-50 to-emerald-50">
       <div className="max-w-6xl mx-auto p-6 space-y-6">
+        <TestNavigation />
+        
         {/* Header */}
         <div className="flex justify-between items-center">
           <div>
