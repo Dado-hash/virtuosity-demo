@@ -181,15 +181,6 @@ const ActivityList = () => {
             </p>
           </div>
           <div className="flex gap-2">
-            <Button 
-              variant="outline" 
-              onClick={() => navigate('/supabase-test')}
-              className="hover:bg-blue-50 hover:border-blue-300"
-            >
-              <TestTube className="h-4 w-4 mr-2" />
-              Vai a Test Center
-              <ArrowRight className="h-4 w-4 ml-2" />
-            </Button>
             <Button onClick={refetch} variant="outline" size="sm">
               <RefreshCw className="h-4 w-4 mr-2" />
               Ricarica
