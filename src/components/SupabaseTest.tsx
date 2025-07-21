@@ -226,7 +226,7 @@ const SupabaseTest = () => {
       {/* Main Content with Tabs */}
       <Tabs defaultValue="manual" className="space-y-6">
         <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="manual">Attività Manuali</TabsTrigger>
+          <TabsTrigger value="manual">Attività di test</TabsTrigger>
           <TabsTrigger value="googlefit" className="flex items-center gap-2">
             <Heart className="h-4 w-4" />
             Google Fit

@@ -275,7 +275,7 @@ const ActivityList = () => {
             </TabsTrigger>
             <TabsTrigger value="pending" className="text-sm px-4 py-2">
               <Clock className="h-4 w-4 mr-2" />
-              Da Certificare ({pendingCount})
+              Test certificazione ({pendingCount})
             </TabsTrigger>
             <TabsTrigger value="verified" className="text-sm px-4 py-2">
               <CheckCircle className="h-4 w-4 mr-2" />

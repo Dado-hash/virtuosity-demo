@@ -31,17 +31,25 @@ const Index = () => {
             <div className="flex items-center space-x-4">
               <Button 
                 variant="outline" 
+                onClick={() => navigate("/supabase-test")}
+                className="hidden sm:flex items-center border-green-200 hover:bg-green-50"
+              >
+                <Car className="h-4 w-4 mr-2" />
+                Prova la demo
+              </Button>
+              <Button 
+                variant="outline" 
                 onClick={() => navigate("/auth-test")}
                 className="hidden sm:flex items-center border-green-200 hover:bg-green-50"
               >
-                <TestTube className="h-4 w-4 mr-2" />
-                Test Auth
+                <User className="h-4 w-4 mr-2" />
+                Login
               </Button>
               <Button 
                 onClick={() => navigate("/dashboard")}
                 className="bg-gradient-to-r from-green-600 to-blue-600 text-white hover:from-green-700 hover:to-blue-700"
               >
-                <User className="h-4 w-4 mr-2" />
+                <Home className="h-4 w-4 mr-2" />
                 Dashboard
               </Button>
             </div>
